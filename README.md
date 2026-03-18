@@ -1,7 +1,3 @@
-# check-notebook-changes
-A github action that checks a Jupyter notebook repository for changes. If there are no changes, it will exit and thus cancel the pipeline at that point.
-# 📘 poll-notebook-repo
-
 [![GitHub Actions](https://img.shields.io/badge/GitHub%20Action-v1-blue)](https://github.com/devops-notebook2rest/check-notebook-changes)
 
 **check-notebook-changes** is a GitHub Action that checks whether a notebook repository has new commits since the last run. Use it to **conditionally trigger downstream workflows** only when there are changes in your notebook repo.
