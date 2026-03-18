@@ -8,7 +8,7 @@ A github action that checks a Jupyter notebook repository for changes. If there 
 
 ---
 
-## ⚡ Features
+## Features
 
 - Polls any Git repository for the latest commit SHA.
 - Uses GitHub Actions cache to detect new commits.
@@ -17,7 +17,7 @@ A github action that checks a Jupyter notebook repository for changes. If there 
 
 ---
 
-## 🛠️ Inputs
+## Inputs
 
 | Input | Description | Required |
 |-------|-------------|----------|
@@ -25,7 +25,7 @@ A github action that checks a Jupyter notebook repository for changes. If there 
 
 ---
 
-## 📤 Outputs
+## Outputs
 
 | Output | Description |
 |--------|-------------|
@@ -34,7 +34,7 @@ A github action that checks a Jupyter notebook repository for changes. If there 
 
 ---
 
-## 🔧 Usage Example
+## Usage Example
 
 ```yaml
 jobs:
