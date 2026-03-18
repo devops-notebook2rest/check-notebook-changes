@@ -8,11 +8,17 @@ inputs:
   notebook_repository_url:
     description: 'URL of the notebook repository to poll'
     required: true
+  last_commit_file:
+    description: 'Path to store the last commit SHA (optional, default: .cache/last_commit)'
+    required: false
+    default: .cache/last_commit
 
 outputs:
   should_run:
     description: 'True if a new commit is detected.'
-    
+  latest_commit:
+    description: 'The latest commit SHA from the notebook repository.'
+
 runs:
   using: "composite"
   steps:
@@ -20,9 +26,8 @@ runs:
       uses: actions/checkout@v4
 
     - name: Prepare cache folder
-      run: | 
-        mkdir -p .cache
-        echo ${{ steps.get_commit.outputs.latest_commit }} > .cache/last_commit
+      run: |
+        mkdir -p $(dirname "${{ inputs.last_commit_file }}")
       shell: bash
 
     - name: Get latest commit from notebook repo
@@ -33,19 +38,26 @@ runs:
         echo "latest_commit=$LATEST" >> $GITHUB_OUTPUT
       shell: bash
 
-    - name: Cache last commit
-      id: cache_commit
-      uses: actions/cache@v4
-      with:
-        path: .cache/last_commit
-        key: notebook-repo-${{ steps.get_commit.outputs.latest_commit }}
-
-    - name: Decide whether to run next/downstream jobs
-      id: decide
+    - name: Compare with previous commit
+      id: compare
       run: |
-        if [ "${{ steps.cache_commit.outputs.cache-hit }}" = "true" ]; then
+        FILE="${{ inputs.last_commit_file }}"
+        # If file exists, read previous commit
+        if [ -f "$FILE" ]; then
+          PREV=$(cat "$FILE")
+        else
+          PREV=""
+        fi
+
+        # Determine if we should run
+        if [ "$PREV" = "${{ steps.get_commit.outputs.latest_commit }}" ]; then
+          echo "No changes detected."
           echo "should_run=false" >> $GITHUB_OUTPUT
         else
+          echo "Changes detected."
           echo "should_run=true" >> $GITHUB_OUTPUT
         fi
+
+        # Save the latest commit to file for next run
+        echo "${{ steps.get_commit.outputs.latest_commit }}" > "$FILE"
       shell: bash
