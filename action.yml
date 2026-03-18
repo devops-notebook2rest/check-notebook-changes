@@ -3,7 +3,7 @@ description: Checks if a notebook repository has new commits since the last run.
 branding:
   icon: git-branch
   color: blue
-
+  
 inputs:
   notebook_repository_url:
     description: 'URL of the notebook repository to poll'
@@ -12,24 +12,33 @@ inputs:
     description: 'Path to store the last commit SHA (optional, default: .cache/last_commit)'
     required: false
     default: .cache/last_commit
-
+    
 outputs:
   should_run:
     description: 'True if a new commit is detected.'
+    value: ${{ steps.compare.outputs.should_run }}
   latest_commit:
     description: 'The latest commit SHA from the notebook repository.'
-
+    value: ${{ steps.get_commit.outputs.latest_commit }}
+    
 runs:
   using: "composite"
   steps:
+  
     - name: Checkout workflow repository
       uses: actions/checkout@v4
-
+      
     - name: Prepare cache folder
       run: |
         mkdir -p $(dirname "${{ inputs.last_commit_file }}")
       shell: bash
-
+      
+    - name: Restore commit cache
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ inputs.last_commit_file }}
+        key: notebook-last-commit
+        
     - name: Get latest commit from notebook repo
       id: get_commit
       run: |
@@ -37,19 +46,16 @@ runs:
         LATEST=$(git ls-remote ${{ inputs.notebook_repository_url }} HEAD | cut -f1)
         echo "latest_commit=$LATEST" >> $GITHUB_OUTPUT
       shell: bash
-
+      
     - name: Compare with previous commit
       id: compare
       run: |
         FILE="${{ inputs.last_commit_file }}"
-        # If file exists, read previous commit
         if [ -f "$FILE" ]; then
           PREV=$(cat "$FILE")
         else
           PREV=""
         fi
-
-        # Determine if we should run
         if [ "$PREV" = "${{ steps.get_commit.outputs.latest_commit }}" ]; then
           echo "No changes detected."
           echo "should_run=false" >> $GITHUB_OUTPUT
@@ -57,7 +63,11 @@ runs:
           echo "Changes detected."
           echo "should_run=true" >> $GITHUB_OUTPUT
         fi
-
-        # Save the latest commit to file for next run
         echo "${{ steps.get_commit.outputs.latest_commit }}" > "$FILE"
       shell: bash
+      
+    - name: Save commit cache
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ inputs.last_commit_file }}
+        key: notebook-last-commit
