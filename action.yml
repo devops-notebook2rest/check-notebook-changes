@@ -20,7 +20,9 @@ runs:
       uses: actions/checkout@v4
 
     - name: Prepare cache folder
-      run: mkdir -p .cache
+      run: | 
+        mkdir -p .cache
+        echo ${{ steps.get_commit.outputs.latest_commit }} > .cache/last_commit
       shell: bash
 
     - name: Get latest commit from notebook repo
