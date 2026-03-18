@@ -37,7 +37,8 @@ runs:
       uses: actions/cache/restore@v4
       with:
         path: ${{ inputs.last_commit_file }}
-        key: notebook-last-commit
+        key: notebook-last-commit-${{ steps.get_commit.outputs.latest_commit }}
+        restore-keys: notebook-last-commit-
         
     - name: Get latest commit from notebook repo
       id: get_commit
@@ -70,4 +71,4 @@ runs:
       uses: actions/cache/save@v4
       with:
         path: ${{ inputs.last_commit_file }}
-        key: notebook-last-commit
+        key: notebook-last-commit-${{ steps.get_commit.outputs.latest_commit }}
